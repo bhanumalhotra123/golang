@@ -1,0 +1,9 @@
+Go program start and end in a main function
+
+and that function has to be in the main package.
+
+main package code will be contained with in a file called main.go 
+
+When we run this file (go run main.go) main function will be executed.
+
+We can import fmt that is from go standard library used to print.
