@@ -1,0 +1,133 @@
+In order to understand concurrency in go we have to understand Go routines
+
+
+LENOVO@PC-f7ad11 MINGW64 ~/Desktop/go/basics/go_concurrecny (main)
+$ go run goroutine.go 
+Done!
+4.0198295s
+
+
+
+Now when we add go so that main doesn't wait for the thisTakesForever function to finish
+
+func main() {
+	start := time.Now()
+	go thisTakesForever("111") // we can't move on to next until this is done.(using go keyword we can actually avoid waiting)
+	go thisTakesForever("222") // we can't move on to next until this is done.(using go keyword we can actually avoid waiting)
+
+	fmt.Println("Done!")
+	fmt.Println(time.Since(start))
+
+}
+
+
+LENOVO@PC-f7ad11 MINGW64 ~/Desktop/go/basics/go_concurrecny (main)
+$ go run goroutine.go 
+Done!
+530.3µs
+
+
+But main doesn't even know wether these go routines finished or not as they don't join back,
+but we should create a joint point where these go routines joins back the main function. 
+
+
+
+
+
+Deadlock when using unbuffer(0 capacity) channel and placing something on channel [no one to consume.]
+
+$ go run channel.go
+fatal error: all goroutines are asleep - deadlock!
+
+goroutine 1 [chan send]:
+main.main()
+        C:/Users/LENOVO/Desktop/go/basics/go_concurrecny/channel.go:12 +0x28
+exit status 2
+
+
+When we add capacity it runs fine. example:
+
+
+
+
+func main() {
+	//start := time.Now()
+
+	myChannel := make(chan string, 1) //buffer(defined capacity) and un-buffer(0 capacity, needs a receiver as soon as something comes to channel.)
+
+	myChannel <- "something"
+
+	fmt.Println(<-myChannel)
+	// go thisTakesForever("111")
+	// go thisTakesForever("222")
+
+	// fmt.Println("Done!")
+	// fmt.Println(time.Since(start))
+
+}
+
+
+
+LENOVO@PC-f7ad11 MINGW64 ~/Desktop/go/basics/go_concurrecny (main)
+$ go run channel.go
+something
+
+
+
+
+After this what we did is we made the both of the go routines to put a message on our channel and used a 
+while loop to block the main function until our channel have two messages.
+
+From this we are able to save time by running multiple go routines on the same time and also blocking the main function until all of them have run.
+
+
+
+Now the following example should have taken around 12 seconds; 2 seconds each for a go routine. 
+But using concurrency it just took 2 seconds overall.
+
+
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	start := time.Now()
+
+	myChannel := make(chan string, 6) //buffer(defined capacity) and un-buffer(0 capacity, needs a receiver as soon as something comes to channel.)
+
+	go thisTakesForever("111", myChannel)
+	go thisTakesForever("222", myChannel)
+	go thisTakesForever("333", myChannel)
+	go thisTakesForever("444", myChannel)
+	go thisTakesForever("555", myChannel)
+	go thisTakesForever("666", myChannel)
+
+	for len(myChannel) < 6 { //this will make the main to wait for myChannel to have two messages on it.
+		// which will make the main function blocked until both go routines finish.
+
+	} // in go while loop is a for loop with some condition
+
+	close(myChannel)
+
+	fmt.Println("Done!")
+	fmt.Println(time.Since(start))
+
+}
+
+func thisTakesForever(id string, myChannel chan<- string) {
+	//this does some work that takes a long time
+	time.Sleep(time.Second * 2)
+	myChannel <- "Done" // this is the message go routines we defined will put on the channel
+}
+
+
+result:
+
+
+LENOVO@PC-f7ad11 MINGW64 ~/Desktop/go/basics/go_concurrecny (main)
+$ go run channel2.go
+Done!
+2.0054978s
