@@ -430,3 +430,58 @@ invalid password
 
 
 
+___________________________________________________________________________________________________
+
+Our application should be long running, but assume if there is some issue in the server code.
+
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+)
+
+func main() {
+	http.HandleFunc("/create-payment-intent", handleCreatePaymentIntent)
+
+	var err error = http.ListenAndServe("invalid", nil)    --------------------> Incorrect address
+	if err != nil {
+		log.Fatal(err)
+	}
+
+}
+
+func handleCreatePaymentIntent(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Endpoint was called")
+}
+
+
+PS C:\Users\LENOVO\Desktop\go\projects\src\backend_for_a_user_interface> go run server.go
+2023/10/03 17:27:01 listen tcp: address invalid: missing port in address
+exit status 1
+
+
+___________________________________________________________________________________________________
+
+To invoke the function we use ()
+
+for example: we should use 
+
+handleCreatePaymentIntent()  in our main function to execute it.
+
+
+But if you will notice that  we are not using () parantheses here 
+
+func main() {
+	http.HandleFunc("/create-payment-intent", handleCreatePaymentIntent)
+
+	var err error = http.ListenAndServe("localhost:4242", nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+}
+
+
+we are just passing the handleCreatePaymentIntent as a argument
