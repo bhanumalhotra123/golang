@@ -27,7 +27,7 @@ func Myfunc() {          --------> first letter capital
 }
 
 
-fmt is part of go standard library(A standard libraries for many useful packaes)
+fmt is part of go standard library(A standard libraries for many useful packages)
 
 
 Adding function parameters to function definition:
@@ -36,7 +36,7 @@ Now in Myfunc we don't have any control over what is called
 
 First we need to understand when we call a function to our file from some other package we are not the creater of the function.
 
-Imagine a seperate person calls this Myfunc to their main.go then the one who created it in his testpackage.
+Imagine a seperate person calls this Myfunc to their main.go than the one who created it in his testpackage.
 
 So now if we are the one who is calling we can't make any changes.
 
@@ -149,3 +149,284 @@ $ go run test.go
 false
 21
 29
+
+
+These were the basics____________________________________________________________________
+
+_________________________________________
+
+Now we will focus on building th backend for our frontend webpage
+
+
+First thing create a stripe payments accound and save the publishable key in frontend StripePayment.jsx file.
+
+
+Our frontend should be able to send requests to our backend
+
+Now we will be writing our code for backend but the requests fron frontend will come over internet (That request is called an http request)
+
+For that we:
+import (
+	"fmt"
+	"net/http"
+)
+
+Notice one more thing we use parantheses here to include more than 1 package instead of doing: import "fmt" import "net/http"
+
+
+Now let us understand:
+func HandleFunc(pattern string, handler func(ResponseWriter, *Request))
+
+
+How frontend calls to specific backend server which is located in someother location(as there can be many servers say for reddit, google, yahoo)?
+
+Say ip of backend server is 172.217.1.46
+
+Now the backend server have 0-65,353 port range we can connect to. say it listens on 2222
+
+So the frontend make calls to 172.217.1.46:2222
+
+But this is not enough our backend should know what to do with the request it gets. So we have to define api endpoints(path to some functionality.)
+
+In this project we will build /create-payment-intent  
+
+Now, the frontend will send request on 172.217.1.46:2222/create-payment-intent  
+
+
+say this is the path we want in our backend
+http://localhost:4242/create-payment-intent
+
+
+func main() {
+	http.HandleFunc("/create-payment-intent")  ------> This is where we define endpoint
+}
+
+What about functionality mapped to this /create-payment-intent endpoint?
+
+
+
+func main() {
+	http.HandleFunc("/create-payment-intent", handleCreatePaymentIntent) ----->here we define the function that will have the functionality for this endpoint.
+}
+
+func handleCreatePaymentIntent()  
+
+Now this function handleCreatePaymentIntent have to take two arguments with types as  ResponseWriter and *Request. (these two types comes from http package)
+
+in go you can have your own types as well not .
+
+
+
+
+func main() {
+	http.HandleFunc("/create-payment-intent", handleCreatePaymentIntent)
+}
+
+func handleCreatePaymentIntent(w http.ResponseWriter, r *http.Request)
+
+
+Now in our function we have defined to handle the functionality of /create-payment-intent, we have added the parameters that anyone using it has to pass them.
+ One is w and its type is http.ResponseWriter(this type is created by http package) and second is r and its type is *http.Request
+
+
+to comment out code use //
+
+
+Now when we do go run main.go it just executes whatever is in func main and ends
+
+But for server code we need a long living application (which is always listening to the requests)
+
+http package provides that functionality with the function called ListenAndServe
+
+
+func main() {
+	http.HandleFunc("/create-payment-intent", handleCreatePaymentIntent)
+
+	http.ListenAndServe("localhost:4242", nil)
+}
+
+func handleCreatePaymentIntent(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Endpoint was called")
+}
+  
+
+localhost:4242 this is the addr
+we are giving nil as value of handler
+
+ListenAndServe listens on the TCP network address addr and then calls Serve with handler to handle requests on incoming connections. Accepted connections are configured to enable TCP keep-alives.
+  
+func ListenAndServe(addr string, handler Handler) error    ------> this function returns a value if error occurs
+
+You put the type after the function of what function should returns
+
+func returnsValue(something string) string {  -----> here string after function defines the type of return
+    return "something"
+}
+
+
+
+
+
+
+
+package main
+
+import (
+	"fmt"
+	"net/http"
+)
+
+func main() {
+	//http.HandleFunc("/create-payment-intent", handleCreatePaymentIntent)
+
+	//http.ListenAndServe("localhost:4242", nil)
+
+	var caughtValue = returnsValue("Hello, I will return this back to you")      -----> passing the argument in the function and saving it memory using variable
+	fmt.Println(caughtValue)                                                     -----> Printing the value
+
+}
+
+func handleCreatePaymentIntent(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Endpoint was called")
+}
+
+func returnsValue(something string) string {            -----> after the function we have given datatype of return
+	return something                 ----------------> here we are returning the argument only(you can return anything)
+}
+
+
+
+
+PS C:\Users\LENOVO\Desktop\go\projects\src\backend_for_a_user_interface> go run main.go
+Hello, I will return this back to you
+
+
+
+
+now the type of return value in case of ListenAndServe is err
+
+
+func main() {
+	http.HandleFunc("/create-payment-intent", handleCreatePaymentIntent)
+
+	var err error = http.ListenAndServe("localhost:4242", nil)    -----> here we are catching the value returned from the ListenAndServe function, its type is error and we are saving it in a variable named err.
+	if err != nil {                   ------------> If err is not equals to nil 
+		log.Fatal(err)                -------------> here we use another function named Fatal from the package log to handle the error
+	}
+
+}
+
+func handleCreatePaymentIntent(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Endpoint was called")
+}
+
+
+
+
+Now frontend and server code(Go application) is running on the same server while developing.
+
+In prod frontend will be running somewhere else and will be sending requests to backend.
+
+Here our server is local machine 
+
+Internal ip of local machine is 127.0.0.1 
+
+There is an ipaddr that maps this ip to localhost (we can use localhost as well)
+
+How we are able to run frontend and backend on same server? because both of them are running on different ports.
+
+frontend send request to 127.0.0.1:backendport    (just for development otherwise backend is on some other server)
+
+We will use postman as frontend for now to send request to backend and test it.
+
+
+error type is builtin type provided by go
+
+
+
+
+
+package main
+
+import (
+	"errors"
+	"fmt"
+	"net/http"
+)
+
+func main() {
+	var err error = returnsError("wrongPassword")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+}
+
+func returnsError(password string) error {
+
+	var secretPassword string = "supersecretpassword"
+	if password == secretPassword {
+		return nil
+	} else {
+		return errors.New("invalid password")
+	}
+}
+
+func handleCreatePaymentIntent(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Endpoint was called")
+}
+
+
+
+Result:
+
+PS C:\Users\LENOVO\Desktop\go\projects\src\backend_for_a_user_interface> go run main.go
+invalid password
+
+
+In this we defined a function named returnsError which have a return type error (it has to return and error or nil)
+
+we have a package named function in which we have a function named new which can be used to create our own error(basically this new function takes our string and return it as an error)
+
+then we set the parameter password that should be string and in this function only we defined if the argument passed for password parameter is equals to supersecretpassword than we will return nil
+otherwise we will return the error (the New function is used here to return our string as error.)
+
+
+
+func returnsError(password string) error {
+
+	var secretPassword string = "supersecretpassword"
+	if password == secretPassword {
+		return nil
+	} else {
+		return errors.New("invalid password")
+	}
+}
+
+
+
+Now we pass this function in our main function and pass the argument as wrongPassword (expected is supersecretpassword)
+then we saved the error of this function in a variable err and we print err    if err != nil
+
+func main() {
+	var err error = returnsError("wrongPassword")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+}
+
+
+Result:
+
+PS C:\Users\LENOVO\Desktop\go\projects\src\backend_for_a_user_interface> go run main.go
+invalid password
+
+
+
+
+
+
+
+
+
