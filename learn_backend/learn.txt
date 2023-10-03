@@ -1,0 +1,151 @@
+when you want a function in a package to be public you keep the first letter of its name capital.
+
+
+func Myfunc() {}     ---> Here first letter is capital
+
+
+
+package main
+
+import "backend_for_a_user_interface/testpackage"  -------> imported the package
+
+func main() {
+	testpackage.Myfunc()       ---------> here we are importing the function
+
+}
+
+
+
+package testpackage
+
+import "fmt"
+
+func Myfunc() {          --------> first letter capital
+	fmt.Println("step1")    --------> First letter P is capital [which means Println is a public function in fmt package(which is part of go standard library)]
+	fmt.Println("step2")
+	fmt.Println("step3")
+}
+
+
+fmt is part of go standard library(A standard libraries for many useful packaes)
+
+
+Adding function parameters to function definition:
+_________________________________________
+Now in Myfunc we don't have any control over what is called
+
+First we need to understand when we call a function to our file from some other package we are not the creater of the function.
+
+Imagine a seperate person calls this Myfunc to their main.go then the one who created it in his testpackage.
+
+So now if we are the one who is calling we can't make any changes.
+
+But if we are the creater we can make changes and we can give some power to the people calling this function to alter the function by way of parameters.
+(When we are calling the function we call it arguments, when we are defining the function we call it parameters)
+
+
+
+package testpackage
+
+import "fmt"
+
+func Myfunc(step int, anotherParameter int) {
+	fmt.Println("step1")
+	fmt.Println("step2")
+	fmt.Println("step3")
+}
+
+
+Now with these changes if we run our main.go which is calling this function.
+
+PS C:\Users\LENOVO\Desktop\go\projects\src\backend_for_a_user_interface> go run main.go
+# command-line-arguments
+.\main.go:6:2: not enough arguments in call to testpackage.Myfunc
+        have ()
+        want (int, int)
+
+
+
+First we need to understand datatypes here for more clarity on arguments or parameters.
+
+
+var step int = 1
+
+
+Here we are defining a variable named step which is an int and its value is defined as 1.
+
+We are basically saving the value 1 in memory 
+  
+We use 1 equal sign to assign a value to a variable so we have to use 2 equal sign to equate two things.
+
+func Myfunc(step int) {
+	if step == 1 {
+		fmt.Println("step1")
+	} else if step == 2 {
+		fmt.Println("step2")
+	} else if step == 3 {
+		fmt.Println("step3")
+	} else {
+		fmt.Println("step not supported")
+	}
+}
+
+Now we have defined 1 parameter step, Now depending on what value the caller of the function passes for step argument it will get different results.
+
+
+package main
+
+import (
+	"backend_for_a_user_interface/testpackage"
+)
+
+func main() {
+	var step int = 1
+	testpackage.Myfunc(step)
+
+}
+
+
+Now in our main.go we have defined the value of step as 1.
+
+Result:
+
+PS C:\Users\LENOVO\Desktop\go\projects\src\backend_for_a_user_interface> go run main.go
+step1
+  
+
+
+Now when var step int = 4
+
+PS C:\Users\LENOVO\Desktop\go\projects\src\backend_for_a_user_interface> go run main.go
+step not supported
+
+
+
+Datatypes : 
+int       We can apply airthmatic to these
+string    We can only concatenate them + (- or other won't work)
+bool
+
+
+
+package main
+
+import "fmt"
+
+func main() {
+	var isHappy bool = false
+	var something string = "21"
+	var somethingelse int = 29
+
+	fmt.Println(isHappy)
+	fmt.Println(something)
+	fmt.Println(somethingelse)
+
+}
+
+
+$ go run test.go
+false
+21
+29
