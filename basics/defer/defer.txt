@@ -1,0 +1,2 @@
+The defer statement in Go is used to delay the execution of a function or a statement until the surrounding function returns. This can be useful for cleaning up resources, such as closing files or database connections.
+

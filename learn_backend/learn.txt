@@ -485,3 +485,785 @@ func main() {
 
 
 we are just passing the handleCreatePaymentIntent as a argument
+
+So basically handle function is invoked by http.HandleFunc whenever there is a request at /create-payment-intent
+
+
+To understand this better:
+_________________________________________
+
+package main
+
+import (
+	"fmt"
+	"net/http"
+)
+
+func main() {
+
+	functionOne(anotherFunction)
+
+}
+
+func functionOne(functionTwo func()) {
+	functionTwo()                          -----------------> Here we are calling the same function which are passing as attribute
+}
+
+func anotherFunction() {
+	fmt.Println("anotherFunction was called")
+}
+
+
+
+Result of this:
+PS C:\Users\LENOVO\Desktop\go\projects\src\backend_for_a_user_interface> go run server.go
+anotherFunction was called
+
+
+In programming when you can pass a function as an argument it is called  the language that supports 1st class function.
+
+___________________________________________________________________________________________________
+
+
+Now testing this :
+
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+)
+
+func main() {
+	http.HandleFunc("/create-payment-intent", handleCreatePaymentIntent)
+
+	log.Println("Listening on localhost:4242")
+	var err error = http.ListenAndServe("localhost:4242", nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+}
+
+func handleCreatePaymentIntent(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Endpoint was called")
+}
+
+
+PS C:\Users\LENOVO\Desktop\go\projects\src\backend_for_a_user_interface> go run server.go  
+2023/10/09 17:23:39 Listening on localhost:4242
+
+
+Now in postman checking the endpoint:
+
+GET localhost:4242/create-payment-intent SEND
+
+PS C:\Users\LENOVO\Desktop\go\projects\src\backend_for_a_user_interface> go run server.go  
+2023/10/09 17:23:39 Listening on localhost:4242
+Endpoint was called
+Endpoint was called
+Endpoint was called
+
+
+
+What if we call a endpoint which we never created?
+
+localhost:4242/health
+
+in postman we get this: 404 page not found
+
+
+
+
+Now if we add the health endpoint too
+___________________________________________________________________________________________________
+
+
+func main() {
+	http.HandleFunc("/create-payment-intent", handleCreatePaymentIntent)
+	http.HandleFunc("/health", handlehealth)
+
+	log.Println("Listening on localhost:4242")
+	var err error = http.ListenAndServe("localhost:4242", nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+}
+
+func handleCreatePaymentIntent(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Endpoint was called")
+}
+
+func handlehealth(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("OK!")
+}
+
+
+
+2023/10/09 18:04:16 Listening on localhost:4242
+OK!
+OK!
+OK!
+
+
+__________________________________________________________________________________
+
+
+Here we don't know who is sending the request.
+
+Before we solve this we have to understand few things:
+
+
+  earlier we learned how to save a single value in memory using variables
+
+  var name string = "Bhanuman"
+
+Slice to declare a list of items
+
+Do define slice we use [] brackets here.
+
+var names []string = [] string{"Bhanu", "shivam", "arsh", "akash", "ashiq", "sandeep"}
+
+PS C:\Users\LENOVO\Desktop\go\projects\src\backend_for_a_user_interface> go run server.go  
+[Bhanu shivam arsh akash ashiq sandeep]
+
+
+Each of these names can be called using index.
+
+index starts from 0
+
+
+func main() {
+
+	var names []string = []string{"Bhanu", "shivam", "arsh", "akash", "ashiq", "sandeep"}
+
+	fmt.Println(names[2])
+
+}
+
+
+
+
+PS C:\Users\LENOVO\Desktop\go\projects\src\backend_for_a_user_interface> go run server.go  
+arsh
+
+
+
+
+
+	var names []int = []int{1, 2, 3, 4}
+
+	fmt.Println(names[2])
+
+
+Go is a type safe language you have to declare type everywhere
+Type saftey saves from disasters!!
+
+Now let us use slice in our code.
+
+
+
+func handlehealth(writer http.ResponseWriter, rqquest *http.Request) {
+	
+}
+
+
+When the requester sends a request we want to send a response back server is running to the requester.
+
+
+
+
+	var someNumber int = 22
+	var numberAsString string = string(someNumber)
+
+
+	//It will look like "22"
+
+
+
+Similarly we convert a string into a slice of bytes
+
+package main
+
+import (
+	"fmt"
+	"net/http"
+)
+
+func main() {
+
+	var responseString string = "Server is up and running"
+	var response []byte = []byte(responseString)
+
+	fmt.Println(response)
+}
+
+
+decimal value of the character
+
+PS C:\Users\LENOVO\Desktop\go\projects\src\backend_for_a_user_interface> go run server.go  
+[83 101 114 118 101 114 32 105 115 32 117 112 32 97 110 100 32 114 117 110 110 105 110 103]
+
+https://www.charset.org/utf-8
+
+83 is equivalent to S
+
+101 is equivalent to e
+
+and so on.....
+
+32 is space
+
+__________________________________________________________________________________
+
+In golang you can receive multiple return values from a function.
+
+func returnsMultiple() (string, int, bool){
+
+	return "string", 1, true
+}
+
+
+Here this function will return  3 seperate values 
+
+When we store the respone of this function in a variable we will have to store 3 different values.
+
+var something string = returnsMultiple()   this gives error as we are only catching a string.
+
+
+
+
+a new way to assign value
+
+someString, someInt, someBool := returnsMultiple()
+
+
+what is := ?   this is shortcut 
+
+go infers the type of variable from the function returnsMultiple 
+
+It follows the same order for referencing the type which is in the function
+
+that is first is string then int and last bool 
+
+
+
+
+or this is a thisIsAString := "string"
+
+here go infers the type from "string"
+
+
+
+func handlehealth(w http.ResponseWriter, r *http.Request) {
+	 response := []byte("Server is up and running")
+
+	 _, err := writer.Write(response) -------> here Write function returns two values is int other is error. To ignore int we use _
+
+	 someString, someInt, someBool := returnsMultiple()
+}
+
+
+
+
+Now we handle the error, in go we always have to handle the errors.
+
+
+func handlehealth(writer http.ResponseWriter, request *http.Request) {
+	response := []byte("Server is up and running")
+
+	_, err := writer.Write(response)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+}
+
+
+
+
+Now when we hit the endpoint    localhost:4242/health
+
+this handlehealth function gets invoked which takes two parameters 
+
+the parameter writer have a value of http.ResponseWriter
+
+writer.Write method of an http.ResponseWriter object takes a byte slice 
+
+so here we convert our string response "Server is up and running" into a byte slice
+
+which is then placed in writer.Write
+
+now we put that equal to a variable 
+
+_, err            why this? writer.Write takes a byte as argument and gives out an integer and an error types as response.
+
+So we are ignoring int and just catching the error as err
+
+and if err comes up we print it.
+
+
+
+
+
+You create a byte slice containing the response message: response := []byte("Server is up and running").
+
+
+You use writer.Write(response) to write this byte slice to the http.ResponseWriter object, which effectively sends the response to the client.
+
+
+localhost:4242/health
+
+
+
+in response: Server is up and running
+
+
+
+
+Now if you stop the server and hit the endpoint you will get the error
+
+
+
+Now the other parameter that is health is a request that the server receives
+
+
+If sender sends us some request with a message we can read it
+
+in handleCreatePayment function that is what we want to do and also we have to make it check if the sender is using correct request.
+
+
+In case of creating a payment request we post some data  related to product and more.
+
+ 
+So we want that request to be POST only.
+
+
+
+
+func handleCreatePaymentIntent(writer http.ResponseWriter, request *http.Request) {
+	if request.Method != "POST" {
+		http.Error(writer, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
+
+	}
+}
+
+
+
+
+
+localhost:4242/create-payment-intent
+
+Method Not Allowed
+
+
+
+func handleCreatePaymentIntent(writer http.ResponseWriter, request *http.Request) {
+	if request.Method != "POST" {
+		http.Error(writer, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
+
+	}
+	fmt.Println("request method was correct !")
+}
+
+
+It will print of terminal if it is correct method.
+
+
+
+
+
+What happens when user wants to buy a product on front-end?
+
+front-end sends the request to payment gateway
+  
+
+Frontend       Stripe server    our backend go server
+
+
+frontend  ---> Create payment intent request ---> Go server ---> create payment intent request ---> stripe server
+
+stripe payment sends payment intent request it created and copy of customer key to backend and backend sends it further to frontend
+
+when frontend confirms ---> frontend sends confirm payment request to stripe server with key and stripe 
+
+
+
+
+
+
+How do we get to know about packages?
+
+reading! Documentation
+
+https://pkg.go.dev/net/http 
+
+
+https://pkg.go.dev/std
+
+
+Use Ctrl + click to check any code it will take it to how it is built by golang.
+
+
+
+
+if we are using variables we can change the values later 
+
+	DoesChange := 22
+	fmt.Println(DoesChange)
+
+	DoesChange = 32
+	fmt.Println(DoesChange)
+
+	both will be printed
+
+
+The following won't work
+
+		const DoesChange = 22
+	fmt.Println(DoesChange)
+
+	const DoesChange = 32
+	fmt.Println(DoesChange)
+
+
+
+
+var variableName string      here we declare a variable
+
+var variableName string = "something"  here we assign a value
+
+
+variableName := "something" do both together
+
+
+
+
+
+Struct
+_________________________________________
+whoever sends request to the endpoint has to confirm to this structure  
+
+func handleCreatePaymentIntent(writer http.ResponseWriter, request *http.Request) {
+	if request.Method != "POST" {
+		http.Error(writer, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
+
+	}
+	var req struct {       --------------------> we define the structure here
+    	ProductId string `json:"product_id"` -------> all of these has to be capitalised so as to export
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
+		Address1  string `json:"address_1"`
+		Address2  string `json:"address_2"`
+		City      string `json:"city"`
+		State     string `json:"state"`
+		Zip       string `json:"zip""`
+		Country   string `json:"country"`
+	}
+
+	err := json.NewDecoder(request.Body).Decode(&req)  -----> this takes the body of request which is in json decodes it and saves it in req using a pointer.
+    if err != nil
+	    log.Println(err)
+		return
+    }
+
+
+Now if this you send invalid structure using postman to the endpoint
+you still get 200 response
+
+If we write response to the writer the default is 200
+
+
+  err := json.NewDecoder(request.Body).Decode(&req)  -----> this takes the body of request which is in json decodes it and saves it in req using a pointer.
+    if err != nil
+	    http.Error(writer, err.Error(), http.StatusInternalServerError)  -------> err.Error() this is how you convert err into a string.
+		return
+    
+
+
+
+
+now we add some print statements
+
+
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
+)
+
+func main() {
+
+	http.HandleFunc("/create-payment-intent", handleCreatePaymentIntent)
+	http.HandleFunc("/health", handlehealth)
+
+	log.Println("Listening on localhost:4242")
+	var err = http.ListenAndServe("localhost:4242", nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func handleCreatePaymentIntent(writer http.ResponseWriter, request *http.Request) {
+	if request.Method != "POST" {
+		http.Error(writer, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
+
+	}
+	var req struct {
+		ProductId string `json:"product_id"`
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
+		Address1  string `json:"address_1"`
+		Address2  string `json:"address_2"`
+		City      string `json:"city"`
+		State     string `json:"state"`
+		Zip       string `json:"zip""`
+		Country   string `json:"country"`
+	}
+
+	err := json.NewDecoder(request.Body).Decode(&req)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	fmt.Println(req.FirstName)         -----------------------------------> here we added some print statements 
+	fmt.Println(req.Country)
+}
+
+func handlehealth(writer http.ResponseWriter, request *http.Request) {
+	response := []byte("Server is up and running")
+
+	_, err := writer.Write(response)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+}
+
+
+
+I sent this as request from postman on localhost:4242/create-payment-intent     :
+
+{
+    "productid": "test product id",
+    "first_name": "Bhanu",
+    "last_name": "Malhotra",
+    "address_1":"haha",
+    "address_2":"hahaha",
+    "city":"chinchpokli",
+    "state":"Admiringyou",
+    "zip":"252550",
+    "country":"Babe bhangra paunde ne"
+}
+
+
+
+I got 200
+
+and on terminal
+
+
+PS C:\Users\LENOVO\Desktop\go\projects\src\backend_for_a_user_interface> go run server.go  
+2023/10/10 11:29:23 Listening on localhost:4242
+Bhanu
+Babe bhangra paunde ne
+
+
+this gets printed
+
+
+
+The most important value we need is of product_id as we get to know the price from it.
+
+
+In general we don't send this data to stripe we save it in a db.
+
+
+
+
+https://pkg.go.dev/github.com/stripe/stripe-go/v72
+
+
+https://github.com/stripe/stripe-go
+
+
+First we try to write code of creating a payment intent and then we will do the imports.
+
+We first need to create the parameters that we need to pass to stripe api to create the intent.
+
+		City      string `json:"city"`
+		State     string `json:"state"`
+		Zip       string `json:"zip""`
+		Country   string `json:"country"`
+	}
+
+	err := json.NewDecoder(request.Body).Decode(&req)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+params := &stripe.PaymentIntentParams{
+
+}
+
+&stripe comes from stripe library , PaymentIntentParams as well.
+
+we send these params to stripe api and in response it sends us back payment intent
+
+
+	params := &stripe.PaymentIntentParams{
+		Amount: stripe.Int64(cacluteOrderAmout(req.ProductId)), ----> here we convert the response of our function into Int64 type of stripe
+	}
+
+
+then we download
+
+go get -u github.com/stripe/stripe-go/v75
+
+
+
+func calculateOrderAmount(ProductId string) int64 {
+	switch productId {                  --------------> just a cleaner way to write if else statements
+	case "Forever Pants":
+		return 26000
+	case "Forever Shirt":
+		return 15500
+	case "Forever Shorts":
+		return 30000
+	}
+	return 0
+
+}
+
+
+
+	params := &stripe.PaymentIntentParams{
+		Amount:   stripe.Int64(cacluteOrderAmout(req.ProductId)),
+		Currency: stripe.String(string(stripe.CurrencyUSD)),
+	}
+
+	here in the currency first we convert CurrencyUSD type of stripe into a normal string type and then we convert it into stripe string type.
+
+	(stripe hasn't provided a way to directly convert its CurrencyUSD type into its string)
+
+	 
+
+	 	params := &stripe.PaymentIntentParams{
+		Amount:   stripe.Int64(cacluteOrderAmout(req.ProductId)),
+		Currency: stripe.String(string(stripe.CurrencyUSD)),
+		AutomaticPaymentMethods: &stripe.PaymentIntentAutomaticPaymentMethodsParams{  ---> this takes a struct as value(if it is enabled it takes the payment methods that you have included in dashboard)
+			Enabled: stripe.Bool(true),
+		},
+	}
+
+
+
+params := &stripe.PaymentIntentParams{
+		Amount:   stripe.Int64(calculateOrderAmount(req.ProductId)),
+		Currency: stripe.String(string(stripe.CurrencyUSD)),
+		AutomaticPaymentMethods: &stripe.PaymentIntentAutomaticPaymentMethodsParams{
+			Enabled: stripe.Bool(true),
+		},
+	}
+
+	paymentIntent, err := paymentintent.New(params)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusInternalServerError)
+	}
+	fmt.Println(paymentIntent.ClientSecret)
+}
+
+now we send params to strip api and asks for paymentintent from it
+if it is successful we ask for clientSecret that is a key we have to send to frontend.
+
+I sent request to the endpoint with Forever Pants as productid
+
+[ERROR] Request error from Stripe (status 401): {"status":401,"message":"You did not provid
+e an API key. You need to provide your API key in the Authorization header, using Bearer au
+th (e.g. 'Authorization: Bearer YOUR_SECRET_KEY'). See https://stripe.com/docs/api#authenti
+cation for details, or we can help at https://support.stripe.com/.","type":"invalid_request
+_error"}
+
+
+
+when we have to call api of stripe we have to provide a key to it so as to access it.
+
+we save the key taken from dashboard to main function.
+
+stripe.Key = "sk_test_5" 
+
+
+We hit the endpoint again and it was successful and we get the ClientSecret
+
+that we have to send to frontend so that it can use it to talk to stripe when customer confirms the order.
+
+
+So now we will create a struct back to frontend
+
+
+
+
+
+
+
+Before when we created struct for req we decoded it as from postman we were sending json 
+
+
+But now we are sending response to frontend
+
+so we need to convert go code into json
+
+
+
+	var response struct {
+		ClientSecret string `json:"clientSecret"`
+	}
+
+	response.ClientSecret = paymentIntent.ClientSecret
+
+	var buf bytes.Buffer
+	err = json.NewEncoder(&buf).Encode(response)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusInternalServerError)
+	}
+	writer.Header().Set("Content-Type", "application/json")        -----> we are adding in response header that it is  json 
+
+	io.Copy(writer, &buf)            -----------------> this copies the stream from buffer into writer until the end of the line(entire buffer has been return to the writer)
+}
+
+
+The buf variable is a bytes.Buffer object, which is a software implementation of a buffer. The json.NewEncoder() function takes a io.Writer interface as an argument, which is used to write the encoded JSON data to. In this case, we are passing in the buf variable.
+
+The json.NewEncoder() function will encode the response object into a JSON byte slice and write it to the buf variable. If there is any error encoding the object, the err variable will be set to the error.
+
+Once the json.NewEncoder() function has encoded the JSON data, we can get the encoded byte slice by calling the Bytes() method on the buf variable. This byte slice can then be written to a file or sent over a network.
+
+
+In your code, the json.NewEncoder() function will encode the response object into a JSON byte slice and write it to the buf variable. The buf variable will then contain a bytes.Buffer object that contains the encoded JSON byte slice.
+
+
+
+
+Now when i hit the endpoint i got this as response which is in json (i got it on postman not terminal)
+
+{
+    "clientSecret": "pi_3NzcuSSJ6IvxwWc40Haoiev3_secret_rWboRHuXGoUBYCpepk0Drx0cc"
+}
+
+
+Now when customer confirms the endpoint frontend uses this json object and send it to stripe api to confirm the payment.
+
+
+
+Now we have to connect things
