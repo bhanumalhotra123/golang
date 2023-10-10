@@ -1,3 +1,19 @@
+Setting up fronend 
+
+Clone the frontend repo
+
+save publishable key in
+
+install nodejs
+install npm 
+
+npm start
+
+
+
+
+
+
 when you want a function in a package to be public you keep the first letter of its name capital.
 
 
@@ -1267,3 +1283,24 @@ Now when customer confirms the endpoint frontend uses this json object and send 
 
 
 Now we have to connect things
+
+
+now going we deleted previous data in payments section of stripe
+
+and again sent a request to endpoint for pants as product_id
+
+now we saw in payments section of stripe a incomplete payment requst of $260 was there which had same client secret which we had received.
+
+but it is incomplete it will only get complete once frontend confirms it
+
+
+Remember we updated our frontend with publishable key? StripePayment.jsx in src directory of frontend code
+
+
+
+after this it was just testing and i was able to make test payments using test cards
+
+
+
+TLS will be required for production.
+
